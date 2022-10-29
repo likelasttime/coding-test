@@ -6,34 +6,40 @@ positive = []
 negative = []
 answer = 0
 
-for _ in range(N) :
-    n = int(input())
-
-    if n > 1 :      # 양수
-        positive.append(n)
-    elif n == 1 :
+for n in range(N) :
+    num = int(input())
+    if num > 1 :
+        positive.append(num)
+    elif num == 1 :
         answer += 1
     else :
-        negative.append(n)
+        negative.append(num)
 
-positive.sort(reverse = True)       # 내림차순 정렬
-negative.sort()
+positive.sort(reverse=True)     # 양수는 내림차순 정렬
+negative.sort()                 # 음수는 오름차순 정렬
 
-if len(positive) % 2 == 0 :     # 짝수 개만큼 있을 때
-    for i in range(0, len(positive), 2) :
-        answer += positive[i] * positive[i+1]
+def even(lst, answer, size) :
+    for i in range(0, size, 2) :
+        answer += (lst[i] * lst[i+1])
+    return answer
+
+def odd(lst, answer, size) :
+    for i in range(0, size-1, 2) :
+        answer += (lst[i] * lst[i+1])
+    answer += lst[-1]
+    return answer
+
+len_positive = len(positive)
+len_negative = len(negative)
+
+if len_positive % 2 == 0 :
+    answer = even(positive, answer, len_positive)
 else :
-    for i in range(0, len(positive)-1, 2) :
-        answer += positive[i] * positive[i+1]
-    answer += positive[len(positive)-1]
+    answer = odd(positive, answer, len_positive)
 
-if len(negative) % 2 == 0 :     # 짝수 개만큼 있을 때
-    for i in range(0, len(negative), 2) :
-        answer += negative[i] * negative[i+1]
+if len_negative % 2 == 0 :
+    answer = even(negative, answer, len_negative)
 else :
-    for i in range(0, len(negative)-1, 2) :
-        answer += negative[i] * negative[i+1]
-    answer += negative[len(negative)-1]
+    answer = odd(negative, answer, len_negative)
 
 print(answer)
-
