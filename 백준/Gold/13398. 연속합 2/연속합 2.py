@@ -1,4 +1,3 @@
-# 틀렸습니다
 import sys
 input = sys.stdin.readline
 
