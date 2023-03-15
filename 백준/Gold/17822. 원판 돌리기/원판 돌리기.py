@@ -26,7 +26,7 @@ def remove_two(i1, j1, i2, j2):
 def dfs(i, j, value):
     global flag
     for ni, nj in [(i, j-1), (i, j+1), (i-1, j), (i+1, j)] :
-        if (i == -1 or ni == -1) or ni == N : continue
+        if ni == -1 or ni == N : continue
         if circles[ni % N][nj % M] == value :
             flag = True
             circles[ni % N][nj % M] = 0
