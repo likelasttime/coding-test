@@ -12,8 +12,6 @@ def solution(n, lighthouse):
         
     def dfs(cur) :
         nonlocal visit
-        if not dic[cur] :
-            return 1, 0
         on, off = 1, 0
         visit[cur] = 1
         for val in dic[cur] :

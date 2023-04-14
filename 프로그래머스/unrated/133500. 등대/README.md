@@ -1,10 +1,10 @@
 # [unrated] 등대 - 133500 
 
-[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/133500) 
+[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/133500?language=python3) 
 
 ### 성능 요약
 
-메모리: 11.1 MB, 시간: 4.89 ms
+메모리: 11.2 MB, 시간: 4.22 ms
 
 ### 구분
 
