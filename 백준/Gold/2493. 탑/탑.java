@@ -32,7 +32,9 @@ class Main
 						answer[i][0] = answer[j][0];		// 탑의 번호
 						answer[i][1] = answer[j][1];		// 탑의 높이
 						break;
-					}
+					}else{
+                        j = answer[j][0];
+                    }
 				}
 				sb.append(answer[i][0]).append(" ");
 			}
