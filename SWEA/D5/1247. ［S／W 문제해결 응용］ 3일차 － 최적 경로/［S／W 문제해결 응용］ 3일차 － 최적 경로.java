@@ -61,11 +61,16 @@ public class Solution {
 	 * cnt = 재귀 호출 횟수
 	 */
 	public static void dfs(int cnt) {
+        int result = getDistance(cnt);
+        if(result > answer){		// 가지치기
+            return;
+        }
 		if(cnt == n) {		// 모든 고객을 다 넣음
-			answer = Math.min(getDistance(), answer);	// 거리 계산
+			answer = Math.min(result, answer);	// 거리 계산
+            answer = result;
 			return;
 		}
-		
+ 		
 		for(int i=0; i<n; i++) {
 			if(visit[i] == 0) {		// 방문 안함
 				visit[i] = 1;
@@ -75,11 +80,11 @@ public class Solution {
 			}
 		}
 	}
-	
+
 	/*
 	 * 거리 계산
 	 */
-	public static int getDistance() {
+	public static int getDistance(int cnt) {
 		/*
 		 * 첫 번째 고객과 회사 사이의 거리
 		 */
@@ -88,7 +93,7 @@ public class Solution {
 		/*
 		 * 고객과 고객 사이의 거리들의 합
 		 */
-		for(int i=1; i<n; i++) {
+		for(int i=1; i<cnt; i++) {
 			int a = arr[i-1];
 			int b = arr[i];
 			result += Math.abs(customer[a][0] - customer[b][0]) + Math.abs(customer[a][1] - customer[b][1]);
@@ -97,6 +102,9 @@ public class Solution {
 		/*
 		 * 마지막 고객과 집 사이의 거리
 		 */
+        if(cnt < n){
+        	return result;
+        }
 		result += Math.abs(customer[arr[n-1]][0] - home[0]) + Math.abs(customer[arr[n-1]][1] - home[1]);
 		return result;
 	}
