@@ -1,52 +1,61 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.StringTokenizer;
 
-class Main {
-    public static void main(String[] args) throws Exception{
-        BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(System.out));
-        String[] input=br.readLine().split(" ");
-        int N=Integer.parseInt(input[0]);       // 사람 수
-        int M=Integer.parseInt(input[1]);       // 키를 비교한 횟수
-        ArrayList<ArrayList<Integer>> arr=new ArrayList<ArrayList<Integer>>();
-        for(int i=0; i<=N; i++){
-            arr.add(new ArrayList<Integer>());
-        }
-        Integer[] cnt=new Integer[N+1];
-        Queue que=new LinkedList();
-        for(int i=1; i<=N; i++){
-            cnt[i]=0;
-        }
+public class Main {
 
-        for(int m=0; m<M; m++){
-            String[] ab=br.readLine().split(" ");
-            int a=Integer.parseInt(ab[0]);
-            int b=Integer.parseInt(ab[1]);
-            arr.get(a).add(b);
-            cnt[b]++;
-        }
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+		StringTokenizer st;
 
-        for(int i=1; i<=N; i++){
-            if(cnt[i] == 0){
-                que.add(i);
-            }
-        }
+		st = new StringTokenizer(br.readLine());
+		int n = Integer.parseInt(st.nextToken()); // 학생 수
+		int m = Integer.parseInt(st.nextToken()); // 키를 비교한 횟수
 
-        while(!que.isEmpty()){
-            int num=(int)que.poll();
-            bw.write(num+" ");
-            for(Integer b : arr.get(num)){
-                cnt[b]--;
-                if(cnt[b] == 0 ){
-                    que.add(b);
-                }
-            }
-        }
-        bw.flush();
-    }
+		ArrayList<ArrayList<Integer>> arrayList = new ArrayList<ArrayList<Integer>>(); // 인접 리스트(유향)
+		for (int i = 0; i <= n; i++) {
+			arrayList.add(new ArrayList<Integer>());
+		}
+
+		Integer[] cntmap = new Integer[n + 1];
+		for (int i = 0; i < m; i++) {
+			st = new StringTokenizer(br.readLine());
+			int a = Integer.parseInt(st.nextToken());
+			int b = Integer.parseInt(st.nextToken());
+			arrayList.get(a).add(b); // a가 b 앞에 있다.
+			if (cntmap[b] == null) {		// 앞에 선 사람이 없을 때
+				cntmap[b] = 0;
+			}
+			cntmap[b]++; // 앞에 선 사람의 수 증가
+		}
+
+		/*
+		 * 진입 차수가 0인 노드를 큐에 모두 넣기
+		 */
+		Queue<Integer> queue = new LinkedList<>();
+		for (int i = 1; i <= n; i++) {
+			if (cntmap[i] == null) { 	// 앞에 선 사람이 없다.
+				queue.offer(i);
+			}
+		}
+
+		while (!queue.isEmpty()) { 			// 큐가 안 비었으면
+			int num = queue.poll();
+			bw.write(num + " ");
+			for (Integer b : arrayList.get(num)) {		// num의 뒤에 있는 사람을 가져오기
+					cntmap[b]--;				// b의 앞에 선 사람의 수 감소
+					if (cntmap[b] == 0) {		// 0이 된 노드는 큐에 넣기
+						queue.offer(b);
+					}
+				}
+			}
+		bw.flush();			// 정답 출력
+	}
 }
