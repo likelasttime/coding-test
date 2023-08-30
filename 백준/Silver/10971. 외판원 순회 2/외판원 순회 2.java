@@ -40,7 +40,7 @@ public class Main {
      * cnt = 고른 도시 갯수
      */
     public static void dfs(int cnt) {
-    	if(cnt > 1 && arr[visitOrder[cnt-2]][visitOrder[cnt-1]] == 0) {
+    	if(cnt > 1 && arr[visitOrder[cnt-2]][visitOrder[cnt-1]] == 0) {		// 경로가 없으면 가지치기를 해서 더이상 이 경우의 수는 탐색하지 않음
     		return;
     	}
     	
@@ -48,10 +48,7 @@ public class Main {
             int prev = visitOrder[0];		// 출발점
             int sum = 0;
             for(int i=1; i<n; i++) {
-                int end = visitOrder[i];		// 도착점
-                if(arr[prev][end] == 0) {       // 연결되어 있지 않음
-                    return;
-                }    
+                int end = visitOrder[i];		// 도착점   
                 sum += arr[prev][end]; 
                 prev = visitOrder[i];
             }
@@ -59,7 +56,9 @@ public class Main {
             if(arr[visitOrder[n-1]][visitOrder[0]] == 0) {		// 출발점으로 돌아오지 못함
             	return;
             }
+            
             answer = Math.min(answer, sum + arr[visitOrder[n-1]][visitOrder[0]]);		// 도착지 -> 출발지를 더해준다.
+            
             return;
         }
         
