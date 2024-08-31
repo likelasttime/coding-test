@@ -1,120 +1,130 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Collections;
 
 class Solution {
+    static int halfDiceCnt;     // 총 주사위 갯수의 절반
+    static int diceCnt;         // 2 <= 총 주사위 갯수 <= 10
+    static int maxWin = 0;      // A의 최대 승률
+    static int[][] diceInfo;    // 입력으로 주어진 주사위 배열
+    static Set<Integer> set = new HashSet();        // A가 고른 주사위 조합
+    static int[] answer;
     
-    static List<List<Integer>> lst = new ArrayList();       // A가 고른 주사위 조합
-    static int[] diceIdxArr;
-    
+    /*
+        2 <= dice의 길이 = n <= 10
+        n은 2의 배수
+        dice[i]는 i+1번 주사위에 쓰인 6개의 수를 담음
+        dice[i]의 길이 = 6
+        1 <= dice[i]의 원소 <= 100
+    */
     public int[] solution(int[][] dice) {
-        int[] answer = new int[dice.length / 2];    // A의 승률이 가장 높은 주사위 조합
-        int answerIdx = 0;       // A가 고른 주사위 조합 중 승률이 가장 높은 주사위 인덱스
-        int maxScore = 0;       // A의 최대 승률
-        diceIdxArr = new int[dice.length];
+        diceInfo = dice;
+        diceCnt = dice.length;      // 주사위 갯수
+        halfDiceCnt = diceCnt / 2;  // 주사위 갯수의 절반
+        answer = new int[halfDiceCnt];
         
-        dfs(0, 0, dice.length);     // A가 고를 수 있는 주사위의 조합 생성
+        combination(0, 0);      // 조합 1개를 만들 때마다 A의 승률을 계산
         
-        for(int i=0; i<lst.size(); i++) {
-            List<Integer> aTotalArr = new ArrayList();      // A 주사위를 던졌을 때 합의 모든 경우의 수
-            List<Integer> bTotalArr = new ArrayList();      // B 주사위를 던졌을 때 합의 모든 경우의 수
+        return answer;      // 승률이 가장 높은 주사위 번호를 오름차순 정렬
+    }
+    
+    /*
+        주사위를 n/2개 고르는 조합 생성 후 이분 탐색으로 A의 승률을 계산
+        start: 조합에서 시작 인덱스
+        cnt: 현재 고른 주사위 갯수
+    */
+    public void combination(int start, int cnt) {
+        if(cnt == halfDiceCnt) {      // n/2만큼 다 뽑음
+            List<Integer> aSum = new ArrayList();       // A가 던진 주사위의 합 리스트
+            List<Integer> bSum = new ArrayList();       // B가 던진 주사위의 합 리스트
+            List<Integer> aDice = new ArrayList(set);     // A가 고른 주사위의 조합
+            List<Integer> bDice = new ArrayList();        // B가 고른 주사위의 조합
+            calSum(0, 0, aSum, aDice);       // A가 고른 주사위의 합
+            int win = 0;        // A의 승률
             
-            int[][] aDice = new int[dice.length / 2][6];
-            int[][] bDice = new int[dice.length / 2][6];
-            int a = 0;
-            int b = 0;
-            
-            /*
-                A와 B가 고른 주사위를 생성한다.
-            */
-            for(int j=0; j<dice.length; j++) {
-                if(lst.get(i).contains(j)) {
-                    aDice[a++] = dice[j];
-                } else {
-                    bDice[b++] = dice[j];       // A가 고르지 않은 주사위는 B가 고른 주사위
+            // B가 고른 주사위 조합 구하기
+            for(int i=0; i<diceCnt; i++) {     
+                if(set.contains(i)) {       // A가 이미 고른 주사위라면
+                    continue;
                 }
+                bDice.add(i);       // B가 고른 주사위
             }
             
-            throwDice(dice.length/2, aDice, 0, aTotalArr, 0);        // A 주사위 던지기
-            throwDice(dice.length/2, bDice, 0, bTotalArr, 0);        // B 주사위 던지기
-        
-            int resultAScore = binarySearch(aTotalArr, bTotalArr);      // 이진탐색으로 A가 고른 조합의 승률 계산
-            if(maxScore < resultAScore) {           // 승률이 더 높다면
-                maxScore = resultAScore;            // 승률을 갱신
-                answerIdx = i;                      // 해당 승률의 조합 인덱스 저장
-            }
-        }
-        
-        /*
-            승률이 높은 주사위 조합 출력을 위한 작업
-        */
-        for(int i=0; i<dice.length/2; i++) {
-            answer[i] = lst.get(answerIdx).get(i) + 1;
-        }
-        
-        return answer;
-    }
-    
-    /*
-        A가 n/2개의 주사위를 고르는 조합 생성
-    */
-    public void dfs(int start, int cnt, int n) {
-        if(cnt == n/2) {    
-            List<Integer> tmp = new ArrayList();
-            for(int i=0; i<n; i++) {
-                if(diceIdxArr[i] == 1) {
-                    tmp.add(i);
+            calSum(0, 0, bSum, bDice);       // B가 고른 주사위의 합
+            
+            // 이분탐색을 하기 위해 b의 합 리스트를 오름차순 정렬
+            Collections.sort(bSum);
+            
+            win = binarySearch(aSum, bSum);     // 이분탐색
+            
+            if(win > maxWin) {      // 승률이 더 높다면
+                Collections.sort(aDice);    // A가 고른 주사위 조합을 오름차순 정렬
+                maxWin = win;       // A의 승률 갱신
+                // 주사위 조합을 갱신
+                for(int x=0; x<halfDiceCnt; x++) {
+                    answer[x] = aDice.get(x) + 1;       // 주사위 번호는 1번부터 시작함
                 }
-            }
-            lst.add(tmp);
+            }   
             return;
-        } else {
-            for (int i=start; i<n; i++) {
-                diceIdxArr[i] = 1;
-                dfs(i+1, cnt+1, n);
-                diceIdxArr[i] = 0;
-            }
+        }
+        
+        for(int i=start; i<diceCnt; i++) {
+            set.add(i);     // i번째 주사위 선택
+            combination(i + 1, cnt + 1);
+            set.remove(i);
         }
     }
     
     /*
-        A 또는 B가 주사위를 던져서 나올 수 있는 모든 합을 구한다.
+        A또는 B가 고른 주사위의 합을 계산하기 위해 중복순열 사용
+        sum: 주사위의 합
+        cnt: 현재 던진 주사위의 수
+        sumLst: 주사위를 다 던진 후 합을 저장할 리스트
+        diceLst: 현재 고른 주사위들
     */
-    public void throwDice(int r, int[][] dice, int cnt, List<Integer> totalArr, int total) {
-        if(cnt == r) {
-            totalArr.add(total);
+    public void calSum(int sum, int cnt, List<Integer> sumLst, List<Integer> diceLst) {
+        if(cnt == halfDiceCnt) {    // 주사위를 다 던졌다면
+            sumLst.add(sum);      // 합 저장
             return;
-        } else {
-            for(int i=0; i<6; i++) {
-                throwDice(r, dice, cnt + 1, totalArr, total + dice[cnt][i]);
-            }
+        }
+        
+        for(int i=0; i<6; i++) {        // 주사위는 6개의 면이 있음
+            calSum(sum + diceInfo[diceLst.get(cnt)][i], cnt + 1, sumLst, diceLst);
         }
     }
     
     /*
-        A의 승률 계산
+        A의 합마다 승률을 계산
+        B가 고른 주사위를 던진 합 bSum은 오름차순 정렬 됨
     */
-    public int binarySearch(List<Integer> aTotalArr, List<Integer> bTotalArr) {
-        Collections.sort(bTotalArr);        // B가 던진 주사위의 합이 담김 배열을 오름차순 정렬
-        int result = 0;
-        for(int i=0; i<aTotalArr.size(); i++) {
-            int aValue = aTotalArr.get(i);
-            int left = 0;
-            int right = aTotalArr.size() - 1;       // 인덱스는 0부터 시작하니까 1을 빼줘야 함
-            int idx = Integer.MIN_VALUE;
+    public int binarySearch(List<Integer> aSum, List<Integer> bSum) {
+        int mid;
+        int left;
+        int right;
+        int len = aSum.size();      // 합계의 갯수
+        int total = 0;      // A의 승률
+        
+        for(int i=0; i<len; i++) {      // 합계 각각에 대해
+            int startIdx = 0;       // A가 B보다 합이 더 큰 갯수
+            left = 0;
+            right = len - 1;
             while(left <= right) {
-                int mid = (left + right) / 2;
-                if(aValue > bTotalArr.get(mid)) {        // A의 승률이 더 큼
+                mid = (left + right) / 2;
+                if(aSum.get(i) > bSum.get(mid)) {      // A의 승률이 더 크면(무승부는 제외해야 함)
                     left = mid + 1;
-                    idx = Math.max(idx, mid);
-                } else {
+                    startIdx = Math.max(startIdx, mid);
+                } else {        // B의 승률이 더 크거나 같다면
                     right = mid - 1;
                 }
-            }
-            if(idx != Integer.MIN_VALUE) {
-                result += idx + 1;       // 인덱스는 0부터 시작이니까 1을 더해줌
-            }
+            }        
+            if(startIdx == 0) {     // A의 현재 합에 대해 승률이 0인 경우
+                continue;
+            }           
+            total += startIdx + 1;      // A의 총 승률
         }
-        return result;
+        
+        return total;
     }
-} 
+}
