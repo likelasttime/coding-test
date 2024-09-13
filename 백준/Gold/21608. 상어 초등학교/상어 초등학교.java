@@ -1,190 +1,129 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
 import java.util.StringTokenizer;
+import java.util.PriorityQueue;
+import java.util.List;
+import java.util.ArrayList;
 
-public class Main {
+class Main {
+    static final int[] score = new int[]{0, 1, 10, 100, 1000};
+    static final int[] dx = {-1, 1, 0, 0};
+    static final int[] dy = {0, 0, -1, 1};
+    static int n;
 
-	static class Shark implements Comparable<Shark> {
-		int x;
-		int y;
-		int nearFriends; // 주변에 있는 좋아하는 친구 수
-		int emptyCnt; // 주변 빈칸 수
+    static class Node implements Comparable<Node> {
+        int x;
+        int y;
+        int emptyCnt;
+        int likeCnt;
 
-		public Shark(int x, int y, int nearFriends, int emptyCnt) {
-			this.x = x;
-			this.y = y;
-			this.nearFriends = nearFriends;
-			this.emptyCnt = emptyCnt;
-		}
+        public Node(int x, int y, int emptyCnt, int likeCnt) {
+            this.x = x;
+            this.y = y;
+            this.emptyCnt = emptyCnt;
+            this.likeCnt = likeCnt;
+        }
 
-		@Override
-		public int compareTo(Shark shark) {
-			if (nearFriends != shark.nearFriends) {
-				return (nearFriends - shark.nearFriends) * -1;
-			}
+        @Override
+        public int compareTo(Node o) {
+            if(this.likeCnt != o.likeCnt) {     
+                return -(this.likeCnt - o.likeCnt);     // 인접한 곳에 좋아하는 학생이 많은 순
+            }
 
-			if (emptyCnt != shark.emptyCnt) {
-				return (emptyCnt - shark.emptyCnt) * -1;
-			}
+            if(this.emptyCnt != o.emptyCnt) {    
+                return -(this.emptyCnt - o.emptyCnt);   // 인접한 칸 중에서 비어있는 칸이 많은 순
+            }
 
-			if (x != shark.x) {
-				return x - shark.x;
-			}
+            if(this.x != o.x) {      // 행 번호가 작은 순
+                return this.x - o.x;
+            }
 
-			return y - shark.y;
-		}
-	}
+            return this.y - o.y;        // 열 번호가 작은 순
+        }
+    }
 
-	static int n; // 교실의 크기
-	static int[][] sharkClass;		// 상어들에게 자리를 배정하는 배열(값=상어 번호)
-	static int[] dx = { -1, 1, 0, 0 };
-	static int[] dy = { 0, 0, -1, 1 };
-	static Map<Integer, List<Integer>> hashMap;		// 상어 번호 : 상어와 친한 친구 4명의 번호 배열
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st;
+        n = Integer.parseInt(br.readLine());        // 3 <= 격자 크기 <= 20
+        int[][] arr = new int[n][n];
+        int answer = 0;     // 만족도 총 합
+        List<List<Integer>> likesLst = new ArrayList();
 
-	public static void main(String[] args) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		StringTokenizer st;
+        // 학생 별로 좋아하는 학생 리스트를 담기 위한 2차원 리스트 초기화
+        for(int i=0; i<=n*n; i++) {
+            likesLst.add(new ArrayList());
+        }
 
-		n = Integer.parseInt(br.readLine()); // 교실의 크기 3 <= n <= 20
-		sharkClass = new int[n][n]; // 자리배치
-		hashMap = new HashMap<Integer, List<Integer>>(); // 내 번호 : 좋아하는 친구 4명 번호 배열
-		int answer = 0; // 학생의 만족도의 총 합
-		int[] orderStudents = new int[n * n];		// 자리를 배정받는 상어 번호 순서
+        for(int i=0; i<n*n; i++) {
+            st = new StringTokenizer(br.readLine());
+            int idx = Integer.parseInt(st.nextToken());     // 학생 번호
+            List<Integer> likes = new ArrayList();      // 학생별로 좋아하는 학생의 번호를 담는 리스트
 
-		/* 학생의 번호와 그 학생이 좋아하는 학생 4명의 번호가 주어짐 */
-		for (int i = 0; i < n * n; i++) {
-			List<Integer> students = new ArrayList<Integer>();
-			st = new StringTokenizer(br.readLine());
-			int myNum = Integer.parseInt(st.nextToken()); // 당사자 번호
-			for (int j = 0; j < 4; j++) {
-				students.add(Integer.parseInt(st.nextToken()));
-			}
-			hashMap.put(myNum, students);
-			orderStudents[i] = myNum; // 입력으로 주어진 학생의 번호 순서(자리를 배정받는 순서)
-		}
+            // 학생 번호 idx가 좋아하는 학생 4명의 번호 입력 받기
+            while(st.hasMoreTokens()) {
+                likes.add(Integer.parseInt(st.nextToken()));
+            }
+            likesLst.set(idx, likes);
 
-		for (int i = 0; i < n * n; i++) {
-			Shark resultShark = getPos(orderStudents[i]);		// 상어를 앉힐 자리 구하기
-			sharkClass[resultShark.x][resultShark.y] = orderStudents[i];		// 상어에게 자리 배정
-		}
+            PriorityQueue<Node> pq = new PriorityQueue();
+            for(int x=0; x<n; x++) {        // 행
+                for(int y=0; y<n; y++) {    // 열
+                    if(arr[x][y] != 0) {    // 빈 자리가 아니라면
+                        continue;
+                    }
 
-		/* 학생의 만족도의 총 합 구하기 */
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				int total = getNearLikeTotal(i, j, sharkClass[i][j]);
-				switch (total) {
-				case 1:
-					answer += 1;
-					break;
+                    // 사방탐색
+                    int likeCnt = 0;    // 인접한 자리에 좋아하는 학생 수
+                    int emptyCnt = 0;   // 인접한 자리에 빈 자리 수
+                    for(int d=0; d<4; d++) {
+                        int nx = dx[d] + x;
+                        int ny = dy[d] + y;
 
-				case 2:
-					answer += 10;
-					break;
+                        if(isNotValid(nx, ny)) {      // 인덱스 범위 초과
+                            continue;
+                        }
 
-				case 3:
-					answer += 100;
-					break;
+                        if(arr[nx][ny] == 0) {      // 빈 자리라면
+                            emptyCnt++;
+                            continue;
+                        }
 
-				case 4:
-					answer += 1000;
-					break;
-				}
-			}
-		}
+                        if(likes.contains(arr[nx][ny])) {       // 친한 친구라면
+                            likeCnt++;
+                        }
+                    }
+                    pq.add(new Node(x, y, emptyCnt, likeCnt));
+                }
+            }
 
-		System.out.println(answer); // 학생의 만족도의 총 합
+            Node node = pq.poll();
+            arr[node.x][node.y] = idx;      // idx번 학생을 자리에 앉히기
+        }
 
-	}
+        // 만족도 총합 구하기
+        for(int i=0; i<n; i++) {        // 행
+            for(int j=0; j<n; j++) {    // 열
+                int cnt = 0;        // 만족도
 
-	public static boolean isValid(int x, int y) {
-		return 0 <= x && x < n && 0 <= y && y < n; // 인덱스가 범위 내에 있음
-	}
+                for(int d=0; d<4; d++) {    // 4방 탐색
+                    int nx = i + dx[d];
+                    int ny = j + dy[d];
 
-	/*
-	 * num번 상어의 자리 찾기
-	 */
-	public static Shark getPos(int num) {
-		Shark shark = null;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				if (sharkClass[i][j] > 0) { // 다른 상어가 이미 자리 잡아서 이 자리는 선택 불가
-					continue;
-				}
-				Shark tempShark = new Shark(i, j, getNearLikeCnt(i, j, num), getNearEmptyCnt(i, j));
-				if (shark == null) {
-					shark = tempShark;
-					continue;
-				}
-				if (shark.compareTo(tempShark) > 0) {
-					shark = tempShark;
-				}
-			}
-		}
-		return shark;
-	}
+                    if(isNotValid(nx, ny)) {    // 인덱스가 유효하지 않다면
+                        continue;
+                    }
 
-	public static int getNearLikeCnt(int x, int y, int num) {
-		/* 1. 비어있는 칸 중에서 좋아하는 학생이 인접한 칸에 가장 많은 칸으로 자리를 정한다. */
-		int likeCnt = 0;
-		for (int d = 0; d < 4; d++) { 
-			int nx = x + dx[d];
-			int ny = y + dy[d];
-			if (!isValid(nx, ny)) { // 인덱스 유효성 검사
-				continue;
-			}
-			if (hashMap.get(num).contains(sharkClass[nx][ny])) {		// 앉아있는 상어가 num 상어와 친하다.
-				likeCnt++;
-			}
-		}
-		return likeCnt;
-	}
+                    if(likesLst.get(arr[i][j]).contains(arr[nx][ny])) {     // 좋아하는 학생 번호라면
+                        cnt++;      // 만족도 증가
+                    }
+                }
+                answer += score[cnt];
+            }
+        }
+        System.out.println(answer);     // 만족도의 총합 출력
+    }
 
-	/*
-	 * 인근에 빈 칸의 갯수 세기
-	 */
-	public static int getNearEmptyCnt(int i, int j) {
-		int nearCnt = 0;
-
-		for (int d = 0; d < 4; d++) {
-			int nx = i + dx[d];
-			int ny = j + dy[d];
-			if (!isValid(nx, ny)) { // 인덱스 유효성 검사
-				continue;
-			}
-			if (sharkClass[nx][ny] != 0) {
-				continue; // 비어있는 칸이 아니다.
-			}
-			nearCnt++;
-		}
-		return nearCnt;
-	}
-
-	/*
-	 * 인근에 좋아하는 친구의 갯수를 센다.
-	 */
-	public static int getNearLikeTotal(int i, int j, int num) {
-		int cnt = 0;
-
-		for (int d = 0; d < 4; d++) {
-			int nx = i + dx[d];
-			int ny = j + dy[d];
-
-			if (!isValid(nx, ny)) {
-				continue;
-			}
-
-			if (hashMap.get(num).contains(sharkClass[nx][ny])) {	// 앉아있는 sharkClass[nx][ny]는  num 상어가 좋아하는 상어다.
-				cnt++;
-			}
-		}
-
-		return cnt;
-	}
-
+    public static boolean isNotValid(int nx, int ny) {
+        return 0 > nx || 0 > ny || nx >= n || ny >=n;
+    }
 }
