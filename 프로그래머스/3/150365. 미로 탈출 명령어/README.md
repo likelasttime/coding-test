@@ -1,10 +1,10 @@
 # [level 3] 미로 탈출 명령어 - 150365 
 
-[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/150365) 
+[문제 링크](https://school.programmers.co.kr/learn/courses/30/lessons/150365?language=java) 
 
 ### 성능 요약
 
-메모리: 78 MB, 시간: 11.87 ms
+메모리: 89.2 MB, 시간: 16.57 ms
 
 ### 구분
 
@@ -16,7 +16,7 @@
 
 ### 제출 일자
 
-2024년 07월 27일 23:15:15
+2024년 09월 19일 17:58:55
 
 ### 문제 설명
 
