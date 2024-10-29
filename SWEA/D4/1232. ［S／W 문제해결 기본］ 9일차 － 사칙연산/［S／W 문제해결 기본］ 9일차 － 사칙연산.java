@@ -1,74 +1,106 @@
-import java.util.*;
+import java.util.Scanner;
 import java.io.*;
+import java.util.Arrays;
+import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Stack;
 
-class Solution {
-    static int N;
+class Solution
+{
+    static class Tree {
+        int num;		// 정점 번호
+        String value;		// 양의 정수
+        String op;		// 연산자
+        int left;		// 왼쪽 자식
+        int right;		// 오른쪽 자식
+
+        Tree(int num, String value, String op, int left, int right) {
+            this.num = num;
+            this.value = value;
+            this.op = op;
+            this.left = left;
+            this.right = right;
+        }
+    }
+
+    final static List<String> opLst = Arrays.asList("+", "-", "*", "/");
+
+    static Tree[] tree = new Tree[1001];
+    static Stack<Integer> stack;
     static StringBuilder sb;
-    static List<Node> nodes = new ArrayList<>();
-    static Stack<Double> stack;
 
-    public static void main(String args[]) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        sb = new StringBuilder();
-
-        int T = 10;
-
-        for(int test_case = 1; test_case <= T; test_case++) {
-            N = Integer.parseInt(br.readLine());
-            nodes = new ArrayList<>();
-            stack = new Stack<>();
-
-            for (int i = 0; i <=N; i++) {
-                Node n = new Node();
-                nodes.add(n);
+    public static void dfs(int cur) {
+        if(cur != -1) {
+            dfs(tree[cur].left);
+            dfs(tree[cur].right);
+            if(!tree[cur].op.isEmpty()) {
+                sb.append(tree[cur].op);	// 연산자를 스택에 추가
+            } else {
+                sb.append(tree[cur].value + " ");
             }
+        }
+    }
 
-            for (int i = 1; i <=N; i++){
-                String[] str = br.readLine().split(" ");
-                Node node = nodes.get(Integer.parseInt(str[0]));
-                if (str.length==4){
-                    node.value = str[1];
-                    node.left = nodes.get(Integer.parseInt(str[2]));
-                    node.right = nodes.get(Integer.parseInt(str[3]));
-                }else {
-                    node.value = str[1];
+    public static void main(String args[]) throws Exception
+    {
+        Scanner sc = new Scanner(System.in);
+        int T = 10;
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st;
+
+        for(int test_case = 1; test_case <= T; test_case++)
+        {
+            stack = new Stack();
+            sb = new StringBuilder();
+            int n = Integer.parseInt(br.readLine());	// 정점의 개수
+            // 정점의 정보 입력 받기
+            for(int i=1; i<=n; i++) {
+                st = new StringTokenizer(br.readLine());
+                int num = Integer.parseInt(st.nextToken());
+                String value = st.nextToken();		// 연산자 혹은 양의 정수
+                int left = -1;
+                int right = -1;
+
+                if(opLst.contains(value)) {		// 연산자라면
+                    left = Integer.parseInt(st.nextToken());
+                    right = Integer.parseInt(st.nextToken());
+                    tree[i] = new Tree(num, "-1", value, left, right);
+                } else {		// 피연산자라면
+                    tree[i] = new Tree(num, value, "", left, right);
                 }
             }
-            postOrder(nodes.get(1));
-            int result = stack.pop().intValue();
-            sb.append("#").append(test_case).append(" ").append(result).append("\n");
+
+            dfs(1);
+
+            // 후위 표기법 계산
+            String reverse = sb.toString();
+            String numStr = "";
+            for(int i=0; i<reverse.length(); i++) {
+                if(opLst.contains(String.valueOf(reverse.charAt(i)))) {		// 연산자라면
+                    int a = stack.pop();
+                    int b = stack.pop();
+
+                    if(reverse.charAt(i) == '+') {
+                        stack.push(b + a);
+                    } else if(reverse.charAt(i) == '-') {
+                        stack.push(b - a);
+                    } else if(reverse.charAt(i) == '/') {
+                        stack.push(b / a);
+                    } else {
+                        stack.push(b * a);
+                    }
+                } else if(reverse.charAt(i) == ' ') {
+                    stack.push(Integer.parseInt(numStr));
+                    numStr = "";
+                } else {		// 피연산자라면
+                    if(reverse.charAt(i) == ' ') {
+                        continue;
+                    }
+                    numStr += reverse.charAt(i);
+                }
+            }
+
+            System.out.println("#" + test_case + " " + stack.pop());
         }
-        System.out.println(sb.toString());
-
-    }
-
-    public static void postOrder(Node node){
-        if (node.left==null||node.right==null){
-            getResult(node.value);
-            return;
-        }
-        postOrder(node.left);
-        postOrder(node.right);
-        getResult(node.value);
-    }
-
-    public static void getResult(String v){
-        if (!(v.equals("+")||v.equals("-")||v.equals("*") ||v.equals("/"))){
-            stack.push(Double.parseDouble(v));
-            return;
-        }
-        Double b = stack.pop();
-        Double a = stack.pop();
-        if (v.equals("+")) stack.push(a + b);
-        else if (v.equals("-")) stack.push(a - b);
-        else if (v.equals("/")) stack.push(a / b);
-        else stack.push(a * b);
-
-    }
-
-    static class Node{
-        private String value;
-        private Node left;
-        private Node right;
     }
 }
