@@ -1,108 +1,68 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.Scanner;
 
 class Solution
-{    
-    static int[][] arr;
-    static int[][] visit;
-    static int x, y;
-    /** 좌우상 */
-    static int[] dx = {0, 0, -1};
-    static int[] dy = {-1, 1, 0};
-    
+{
+    final static int SIZE = 100;
+
     public static void main(String args[]) throws Exception
-    {    
-        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st;
-        int num;                // 테스트 케이스 번호
-        arr = new int[100][100];
-        visit = new int[100][100];            // 방문 처리 배열
-        
-        for(int t=0; t<10; t++) {        // 10개의 테스트 케이스
-            num = Integer.parseInt(bf.readLine());        // 테스트 케이스 번호
-            
-            /** 100*100 배열에 값 입력받기 */
-            for(int i=0; i<100; i++) {
-                st = new StringTokenizer(bf.readLine());    // 한 줄씩 입력받기
-                for(int j=0; j<100; j++) {
-                    arr[i][j] = Integer.parseInt(st.nextToken());
-                    if(arr[i][j] == 2) {        // 도착지점의 좌표 찾기
-                        x = i;
-                        y = j;
-                    }
+    {
+        Scanner sc = new Scanner(System.in);
+        int T = 10;
+
+        for(int test_case = 1; test_case <= T; test_case++)
+        {
+            int test_num = sc.nextInt(); // 테스트 케이스의 번호
+            int answer = 0; // 도착하게 되는 출발점의 x 좌표
+            int[][] arr = new int[SIZE][SIZE];
+            boolean[][] visit;
+
+            for(int x=0; x<SIZE; x++) {
+                for(int y=0; y<SIZE; y++) {
+                    arr[x][y] = sc.nextInt();
                 }
             }
-            
-            visit = new int[100][100];
-            
-            System.out.printf("#%d ", t+1);
-            bfs();
-        }
-    }
-    
-    public static boolean bfs() {
-        Deque<int[]> que = new LinkedList();
-        int[] pos = {x, y};        // x, y 좌표를 담는 배열
-        que.add(pos);            // 시작 좌표를  추가
-        int nx, ny;
-        int leftY, rightY;        // 좌우
-        boolean flag;
-        
-        while(!que.isEmpty()) {        // 큐에 원소가 있을 동안 반복
-            flag = false;            // 좌 또는 우에 사다리 경로가 있는지
-            pos = que.pollFirst();        // 맨 앞 원소를 뽑기
-            
-            visit[pos[0]][pos[1]] = 1;        // 방문 처리
-            
-            if(pos[0] == 0) {        // 도착했다면
-                System.out.printf("%d\n", pos[1]);
-                return true;
+
+            for(int i=SIZE-1; i>0; i--) {        // 시작점
+                if (arr[0][i] != 1) {    // 출발점이 아니라면
+                    continue;
+                }
+                int x = 0;        // x좌표
+                int y = i;        // y좌표
+                boolean flag = false;
+                visit = new boolean[SIZE][SIZE];
+
+                while (true) {
+                    int nx = x;
+                    int ny = y;
+
+                    visit[nx][ny] = true;
+
+                    if (arr[nx][ny] == 2) {        // 도착
+                        flag = true;
+                    }
+
+                    // 왼쪽으로 갈 수 있다면
+                    if (!isNotValid(nx, ny - 1) && arr[nx][ny - 1] == 1 && !visit[nx][ny - 1]) {
+                        y--;
+                    } else if (!isNotValid(nx, ny + 1) && arr[nx][ny + 1] == 1 && !visit[nx][ny + 1]) {    // 오른쪽으로 갈 수 있다면
+                        y++;
+                    } else if (!isNotValid(nx + 1, ny)) {    // 아래로 내려가기
+                        x++;
+                    } else {    // 인덱스 범위를 초과하면
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    answer = i;        // 시작점 저장
+                    break;
+                }
             }
-            
-            leftY = pos[1] - 1;
-            rightY = pos[1] + 1;
-            
-            if(!validLeft(leftY) && arr[pos[0]][leftY] == 1 && visit[pos[0]][leftY] != 1) {        // 인덱스 범위 내에 있고, 좌로 사다리 경로가 있음
-                pos[1] = leftY;
-                que.add(pos);
-                flag = true;
-            }
-            
-            if(!validRight(rightY) && arr[pos[0]][rightY] == 1 && visit[pos[0]][rightY] != 1) {        // 인덱스 범위 내에 있고, 우로 사다리 경로가 있음
-                pos[1] = rightY;
-                que.add(pos);
-                flag = true;
-            }
-            
-            if(!validLeft(pos[0]-1) && !flag){
-                pos[0] -= 1;
-                que.add(pos);        // 직진
-            }            
+            System.out.println("#" + test_num + " " + answer);
         }
-        return false;
     }
-    
-    /*
-     * 왼쪽 검증
-     */
-    public static boolean validLeft(int y) {
-        if(y < 0) {
-            return true;
-        }
-        return false;
+
+    public static boolean isNotValid(int x, int y) {
+        return x < 0 || x >= SIZE || y < 0 || y >= SIZE;	// 인덱스가 유효하지 않다면
     }
-    
-    /*
-     * 오른쪽 검증
-     */
-    public static boolean validRight(int y) {
-        if(y >= 100) {
-            return true;
-        }
-        return false;
-    }
-    
 }
