@@ -33,22 +33,6 @@ class Solution {
         return value;
     }
 
-    /*
-        인력 구하기
-     */
-    public static double calF(int start, int end, double center) {
-        double f = 1;
-        //double distance = 1;
-        for(int i=start; i<end; i++) {
-            if(i >= n) {
-                break;
-            }
-            f += weights[i] / Math.pow(xArr[i] - center, 2.0);
-            //distance *= Math.abs(xArr[i] - center);
-        }
-        return f;
-    }
-
     public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
         int tc = sc.nextInt();
