@@ -1,69 +1,49 @@
 import java.util.Scanner;
-import java.util.Queue;
-import java.util.LinkedList;
+import java.util.Arrays;
 
 class Main {
-    static class Node {
-        int x;
-        int y;
-        int d;
-        int sum;
-        Node(int x, int y, int d, int sum) {
-            this.x = x;
-            this.y = y;
-            this.d = d;
-            this.sum = sum;
-        }
-    }
-
-    static int n;
-    static int m;
-    static int[][] arr;
-    static int answer;
-
-    final static int[] DX = {1, 1, 1};
-    final static int[] DY = {-1, 0, 1};
-
-    public static void bfs() {
-        Queue<Node> que = new LinkedList();
-        for(int i=0; i<m; i++) {
-            que.add(new Node(0, i, -1, arr[0][i]));
-        }
-        while(!que.isEmpty()) {
-            Node cur = que.poll();
-            if(answer <= cur.sum) {
-                continue;
-            }
-            if(cur.x == n-1) {
-                answer = Math.min(answer, cur.sum);
-                continue;
-            }
-            for(int dir=0; dir<3; dir++) {
-                int nx = cur.x + DX[dir];
-                int ny = cur.y + DY[dir];
-                if(0 > nx || nx >= n || 0 > ny || ny >= m) {
-                    continue;
-                }
-                if(dir == cur.d) {
-                    continue;
-                }
-                que.offer(new Node(nx, ny, dir, cur.sum + arr[nx][ny]));
-            }
-        }
-    }
-
     public static void main(String args[]) {
         Scanner sc = new Scanner(System.in);
-        n = sc.nextInt();
-        m = sc.nextInt();
-        arr = new int[n][m];
-        answer = Integer.MAX_VALUE;
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+        int[][] arr = new int[n][m];
+        int[][][] dp = new int[n][m][3];
+        int answer = Integer.MAX_VALUE;
         for(int i=0; i<n; i++) {
             for(int j=0; j<m; j++) {
                 arr[i][j] = sc.nextInt();
+                Arrays.fill(dp[i][j], Integer.MAX_VALUE);
             }
         }
-        bfs();
+
+        for(int i=0; i<m; i++) {
+            dp[0][i][0] = arr[0][i];
+            dp[0][i][1] = arr[0][i];
+            dp[0][i][2] = arr[0][i];
+        }
+
+        for(int x=1; x<n; x++) {
+            for(int y=0; y<m; y++) {
+                if(y == 0) {      // 첫 번째 열이라면
+                    dp[x][y][0] = Math.min(dp[x - 1][y + 1][1], dp[x - 1][y + 1][2]) + arr[x][y];
+                    dp[x][y][1] = dp[x - 1][y][0] + arr[x][y];
+                } else if(y == m - 1) {     // 마지막 열이라면
+                    dp[x][y][1] = dp[x - 1][y][2] + arr[x][y];
+                    dp[x][y][2] = Math.min(dp[x - 1][y - 1][0], dp[x - 1][y - 1][1]) + arr[x][y];
+                } else {
+                    dp[x][y][0] = Math.min(dp[x - 1][y + 1][2], dp[x - 1][y + 1][1]) + arr[x][y];
+                    dp[x][y][1] = Math.min(dp[x - 1][y][2], dp[x - 1][y][0]) + arr[x][y];
+                    dp[x][y][2] = Math.min(dp[x - 1][y - 1][1], dp[x - 1][y - 1][0]) + arr[x][y];
+                }
+            }
+        }
+
+        for(int y=0; y<m; y++) {
+            for(int d=0; d<3; d++) {
+                answer = Math.min(answer, dp[n - 1][y][d]);
+            }
+        }
+
         System.out.println(answer);
     }
 }
