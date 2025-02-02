@@ -1,90 +1,108 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.Iterator;
+import java.io.*;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
-/*
-* 회전을 4번만 하는 게 아니라 n/4만큼 해야한다.
-* n의 길이가 입력마다 다르고, 회전했을 때 다시 원점으로 돌아와야 모든 경우를 다 따지기 때문이다.
-* 회전할 때 규칙이 있다.
-* 회전 회차가 늘어날수록 시작 인덱스는 0, n-1, n-2, n-3,.. 이런식으로 왼쪽으로 간다.
-* 회전 회차마다 시작 인덱스를 구한 후 +1씩 증가하고, 나머지 연산자를 이용해서 인덱스 초과하지 않도록 한다.
-* 한 회전 회차마다 4개씩 끊어서 담는다.
-* 중복이 없어야 하고 순서도 있어야 해서 TreeSet을 사용했다.
-* HashSet은 순서를 보장할 수 없다.
-*/
-public class Solution {
-	
-	static int n;		// 16진수 0~F 숫자를 입력으로 주는 갯수
-	static String s;		// 입력으로 받는 문자열
-	static char[] ch;		// 회전시킨 문자를 담는 문자 배열
-	static TreeSet<Password> treeSet;
-	
-	static class Password implements Comparable<Password> {
+class Solution {
+    static int n;
+    static int k;
+    static char[] arr;
+    static char[] line;
+    static int lineSize;
+    static int pointer;
+    static Set<Integer> set;
+    static Map<Character, Integer> hexadecimal;
 
-		String str;
+    public static void init() {
+        hexadecimal = new HashMap();
+        hexadecimal.put('0', 0);
+        hexadecimal.put('1', 1);
+        hexadecimal.put('2', 2);
+        hexadecimal.put('3', 3);
+        hexadecimal.put('4', 4);
+        hexadecimal.put('5', 5);
+        hexadecimal.put('6', 6);
+        hexadecimal.put('7', 7);
+        hexadecimal.put('8', 8);
+        hexadecimal.put('9', 9);
+        hexadecimal.put('A', 10);
+        hexadecimal.put('B', 11);
+        hexadecimal.put('C', 12);
+        hexadecimal.put('D', 13);
+        hexadecimal.put('E', 14);
+        hexadecimal.put('F', 15);
+    }
 
-		public Password (String str) {
-			this.str = str;
-		}
-		
-		public int getStr() {
-			return Integer.parseInt(str, 16);			// 16진수를 10진수로 변환
-		}
+    public static int getMaxKthNum() {
+        List<Integer> lst = new ArrayList();
+        for(int num : set) {
+            lst.add(num);
+        }
+        Collections.sort(lst, Collections.reverseOrder());
+        return lst.get(k - 1);
+    }
 
-		@Override
-		public int compareTo(Password o) {
-			return o.getStr() - this.getStr();		// 내림차순 정렬
-		}
-		
-	}
+    /*
+        16진수를 10진수로 변환
+     */
+    public static int transNum() {
+        int result = 0;
+        for(int i=0; i<lineSize; i++) {
+            int cur = hexadecimal.get(line[i]);
+            result += Math.pow(16, lineSize - 1 - i) * cur;
+        }
+        return result;
+    }
 
-	public static void main(String[] args) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
-		StringTokenizer st;
-		
-		int tc = Integer.parseInt(br.readLine());	// 테스트 케이스 수
-		for (int t=1; t<=tc; t++) {
-			treeSet = new TreeSet<Password>();
-			st = new StringTokenizer(br.readLine());
-			n = Integer.parseInt(st.nextToken());	// 16진수 0~F 숫자를 입력으로 주는 갯수
-			int k = Integer.parseInt(st.nextToken());	// k번째
-			s = br.readLine();
-			ch = new char[n/4];
-			
-			for (int i=0; i<n/4; i++) {		// 회전 회차
-				rotate((n-i) % n);		// 회전 회차가 늘어날수록 시작점은 왼쪽 방향으로 간다.
-			}
-			
-			Iterator<Password> iter = treeSet.iterator();
-			while(--k > 0) {
-				iter.next();
-			}
-			
-			bw.write("#" + t + " " + iter.next().getStr() + "\n");	// k번째로 큰 수를 10진수로 만든 수
-		}
-		
-		bw.flush();
+    public static void rotate() {
+        for(int i=0; i<4; i++) {
+            split(pointer + lineSize * i);
+        }
+    }
 
-	}
-	
-	public static void rotate(int start) {
-		for (int i=0; i<4; i++) {		// 회전 횟수
-			int cnt = 0;		// 문자 배열에 담은 문자 인덱스
-			while (cnt < n/4) {			// 4개씩 끊기
-				ch[cnt] = s.charAt(start%n);
-				start++;
-				cnt++;
-			}
-	
-			String str = String.valueOf(ch);		// 문자열로 변환
-			treeSet.add(new Password(str));
-		}
-	}
+    public static void split(int start) {
+        int idx = 0;
+        for(int i=start; i<start+lineSize; i++) {
+            line[idx++] = arr[i % n];
+        }
+        set.add(transNum());     // 16진수 -> 10진수
+    }
 
+    public static void main(String args[]) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        int t = Integer.parseInt(br.readLine());        // 테스트 케이스 수
+        StringTokenizer st;
+
+        init();
+
+        for(int tc=1; tc<=t; tc++) {
+            st = new StringTokenizer(br.readLine());
+            n = Integer.parseInt(st.nextToken());
+            k = Integer.parseInt(st.nextToken());
+            arr = new char[n];
+            lineSize = n / 4;
+            pointer = 0;
+            set = new HashSet();
+            line = new char[lineSize];
+            String str = br.readLine();
+            for(int i=0; i<n; i++) {
+                arr[i] = str.charAt(i);
+            }
+            
+            rotate();
+            pointer = n - 1;
+            for(int i=1; i<lineSize; i++) {
+                // 한번 회전할 때마다 4개의 변을 자르기
+                rotate();
+                pointer--;
+            }
+
+            System.out.println("#" + tc + " " + getMaxKthNum());
+        }
+    }
 }
