@@ -103,7 +103,9 @@ class Solution {
                             for(int h=1; h<n; h++) {
                                 width = w;
                                 height = h;
-                                drawRectangle(row, col, d);
+                                if(answer < (width + height) * 2) {
+                                    drawRectangle(row, col, d);
+                                }
                             }
                         }
                     }
