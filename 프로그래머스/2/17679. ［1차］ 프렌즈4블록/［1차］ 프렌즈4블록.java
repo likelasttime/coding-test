@@ -1,14 +1,17 @@
+import java.util.*;
+
 class Solution {
     static char[][] matrix;
     static int rowSize;
     static int colSize;
+    static boolean[][] visit;
 
     /*
         2 * 2 형태로 모양이 같은 블록을 탐색
     */
     public boolean search() {
         boolean isPop = false;
-        boolean[][] visit = new boolean[rowSize][colSize];  // 터진 블록을 기록할 배열
+        visit = new boolean[rowSize][colSize];  // 터진 블록을 기록할 배열
 
         for (int row = 0; row < rowSize; row++) {
             for (int col = 0; col < colSize; col++) {
@@ -29,31 +32,20 @@ class Solution {
             }
         }
 
-        // 터진 블록들을 드롭할 때는 `visit` 배열을 기반으로 드롭해야 함
-        for (int row = 0; row < rowSize; row++) {
-            for (int col = 0; col < colSize; col++) {
-                if (visit[row][col]) {
-                    matrix[row][col] = '.';  // 터진 블록을 '.'으로 표시 (빈 공간)
-                }
-            }
-        }
-
         return isPop;
     }
 
     public void drop() {
+        char[][] copied = new char[rowSize][colSize];
         for (int col = 0; col < colSize; col++) {
             int idx = rowSize - 1;
             for (int row = rowSize - 1; row >= 0; row--) {
-                if (matrix[row][col] != '.') {  // 터지지 않은 블록이면
-                    matrix[idx--][col] = matrix[row][col];
+                if (!visit[row][col]) {  // 터지지 않은 블록이면
+                    copied[idx--][col] = matrix[row][col];
                 }
             }
-            // 빈 공간을 남기기 위해서 나머지 공간을 '.'으로 채운다.
-            for (int i = idx; i >= 0; i--) {
-                matrix[i][col] = '.';
-            }
         }
+        matrix = copied;
     }
 
     public int solution(int m, int n, String[] board) {
@@ -76,11 +68,11 @@ class Solution {
             }
             drop();
         }
-
-        // 터진 블록의 수는 '.'으로 변경된 문자 개수
+        
+        // 터지지 않은 블록 수 세기
         for (int row = 0; row < m; row++) {
             for (int col = 0; col < n; col++) {
-                if (matrix[row][col] == '.') {
+                if (matrix[row][col] < 'A' || matrix[row][col] > 'Z') {
                     totalPopped++;
                 }
             }
