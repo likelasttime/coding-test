@@ -1,118 +1,87 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.StringTokenizer;
-
-/*
- * 뱀의 머리, 꼬리를 관리하기 위해서는 Deque가 필요하다.
- * 뱀의 머리가 늘어나면 맨앞에 추가하고, 꼬리가 줄어들면 맨뒤에 값을 제거해야기 때문이다.
- * 입력에서 사과의 위치를 입력받을 때 -1을 해줘야 한다. 아니면, 배열을 생성할 때 (n+1) * (n+1)로 생성해도 된다.
- */
+import java.io.*;
+import java.util.*;
 
 public class Main {
+    // 상우하좌
+    final static int[] DX = {-1, 0, 1, 0};
+    final static int[] DY = {0, 1, 0, -1};
 
-	public static class Cmd {
-		int time; // 게임 시작 시간으로부터 x초
-		String direction; // 방향
+    static Deque<int[]> que;
+    static int d;
+    static int[][] arr;
+    static int answer;
+    static int n;       // 2 <= 보드의 크기 <= 100
 
-		public Cmd(int time, String direction) {
-			this.time = time;
-			this.direction = direction;
-		}
-	}
+    public static boolean isValid(int x, int y) {
+        return 1 <= x && x <= n && 1 <= y && y <= n;
+    }
 
-	public static class Snake {
-		int x;
-		int y;
+    public static boolean move() {
+        int[] head = que.peek();
+        int nx = head[0] + DX[d];
+        int ny = head[1] + DY[d];
+        if(!isValid(nx, ny) || arr[nx][ny] == 1) {      // 벽이거나 자기 자신의 몸과 부딪히면
+            System.out.print(++answer);
+            return true;
+        } else if(arr[nx][ny] == 2) {       // 이동한 칸에 사과가 있으면
+            arr[nx][ny] = 1;     // 사과가 없어짐
+        } else {
+            // 몸 길이 줄이기
+            int[] tail = que.pollLast();
+            arr[tail[0]][tail[1]] = 0;
 
-		public Snake(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
+        }
+        // 뱀의 머리 추가
+        arr[nx][ny] = 1;
+        que.offerFirst(new int[]{nx, ny});
+        return false;
+    }
 
-	static int n;
-	static int[][] arr;
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st;
+        n = Integer.parseInt(br.readLine());
+        int k = Integer.parseInt(br.readLine());        // 0 <= 사과의 개수 <= 100
+        arr = new int[n + 1][n + 1];
+        answer = 0;
+        que = new ArrayDeque();
 
-	public static void main(String[] args) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		StringTokenizer st;
+        // 사과의 위치 입력받기
+        for(int i=0; i<k; i++) {
+            st = new StringTokenizer(br.readLine());
+            arr[Integer.parseInt(st.nextToken())][Integer.parseInt(st.nextToken())] = 2;
+        }
 
-		int answer = 0; // 게임 시간
-		n = Integer.parseInt(br.readLine()); // 2 <= 보드의 크기 <= 100
-		arr = new int[n][n];
-		int k = Integer.parseInt(br.readLine()); // 0 <= 사과의 개수 <= 100
-		// 사과의 위치를 입력 받음
-		for (int i = 0; i < k; i++) {
-			st = new StringTokenizer(br.readLine());
-			int x = Integer.parseInt(st.nextToken())-1;
-			int y = Integer.parseInt(st.nextToken())-1;
-			arr[x][y] = 2; // 사과가 있는 곳
-		}
-		// 뱀의 방향 변환 정보를 입력받기
-		List<Cmd> cmdList = new ArrayList<Cmd>();
-		int l = Integer.parseInt(br.readLine()); // 1 <= 뱀의 방향 변환 횟수 <= 100
-		for (int i = 0; i < l; i++) {
-			st = new StringTokenizer(br.readLine());
-			int x = Integer.parseInt(st.nextToken());
-			String c = st.nextToken(); // 왼쪽 L, 오른쪽 D
+        arr[1][1] = 1;      // 초기 뱀 위치
+        que.offer(new int[]{1, 1});
 
-			cmdList.add(new Cmd(x, c));
-		}
+        int l = Integer.parseInt(br.readLine());    // 뱀의 방향 변환 횟수
+        d = 1;      // 초기에 오른쪽 방향
 
-		Deque<Snake> snake = new ArrayDeque<Snake>();
-		snake.add(new Snake(0, 0)); // 초기에 뱀이 있는 위치
-		int cmdIdx = 0;
-		// 우 하 좌 상
-		int[] dx = { 0, 1, 0, -1 };
-		int[] dy = { 1, 0, -1, 0 };
-		int d = 0;
+        // 뱀의 방향 변환 정보 입력받기
+        int[] x = new int[l];
+        String[] c = new String[l];
+        for(int i=0; i<l; i++) {
+            st = new StringTokenizer(br.readLine());
+            x[i] = Integer.parseInt(st.nextToken());
+            c[i] = st.nextToken();
+        }
+        int idx = 0;
+        while(true) {
+            if(idx < l && answer == x[idx]) {
+                // 방향 전환
+                if(c[idx].equals("L")) {
+                    d = (d - 1 + 4) % 4;
+                } else {
+                    d = (d + 1) % 4;
+                }
+                idx++;
+            }
 
-		while (true) {
-			Snake head = snake.peekFirst(); // 뱀의 머리
-
-			if (cmdIdx < cmdList.size() && cmdList.get(cmdIdx).time == answer) {
-				if (cmdList.get(cmdIdx++).direction.equals("L")) {
-					d -= 1;
-				} else {
-					d += 1; // 오른쪽 회전
-				}
-				if (d == -1)
-					d = 3;
-				else if (d == 4)
-					d = 0;
-			}
-
-			int nx = head.x + dx[d];
-			int ny = head.y + dy[d];
-
-			if (!isValid(nx, ny)) { // 범위를 벗어났거나 자신의 몸에 부딪힘
-				answer++;
-				break;
-			}
-
-			if (arr[nx][ny] != 2) { // 사과가 없는 칸
-				// 꼬리가 위치한 칸을 비운다.
-				if (!snake.isEmpty()) {
-					Snake tail = snake.pollLast(); // 마지막에 있는 값(꼬리) 제거
-					arr[tail.x][tail.y] = 0; // 꼬리 제거
-				}
-			}
-
-			arr[nx][ny] = 1; // 뱀의 머리
-			snake.addFirst(new Snake(nx, ny)); // 뱀의 머리가 늘어남
-			answer++; // 시간 증가
-		}
-
-		System.out.println(answer);
-	}
-
-	public static boolean isValid(int x, int y) {
-		return 0 <= x && x < n && 0 <= y && y < n && arr[x][y] != 1;
-	}
-
+            if(move()) {
+                return;
+            }
+            answer++;
+        }
+    }
 }
