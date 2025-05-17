@@ -1,36 +1,36 @@
 import java.util.*;
+import java.io.*;
 
 public class Main {
-    public static void main(String[] args) {
+    final static int MAX_PRICE = 10000;
+
+    public static void main(String[] args) throws IOException {
         Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
-        int m = sc.nextInt();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int n = Integer.parseInt(st.nextToken());   // 1 <= 앱 갯수 <= 100
+        int m = Integer.parseInt(st.nextToken());   // 1 <= 필요한 메모리 바이트 <= 10,000,000
         int[] memory = new int[n];
         int[] price = new int[n];
-        for (int i = 0; i < n; i++) {
-            memory[i] = sc.nextInt();
+        int[] dp = new int[MAX_PRICE + 1];
+        st = new StringTokenizer(br.readLine());
+        for(int i=0; i<n; i++) {
+            memory[i] = Integer.parseInt(st.nextToken());
         }
-        for (int i = 0; i < n; i++) {
-            price[i] = sc.nextInt();
+        st = new StringTokenizer(br.readLine());
+        for(int i=0; i<n; i++) {
+            price[i] = Integer.parseInt(st.nextToken());
         }
-
-        int maxCost = 100 * n;
-        int[] dp = new int[maxCost + 1]; // dp[비용] = 확보한 메모리
-
-        for (int i = 0; i < n; i++) {
-            for (int j = maxCost; j >= price[i]; j--) {
-                dp[j] = Math.max(dp[j], dp[j - price[i]] + memory[i]);
+        for(int i=0; i<n; i++) {        // 앱의 갯수만큼 반복
+            for(int j=MAX_PRICE; j>=price[i]; j--) {
+                dp[j] = Math.max(dp[j], memory[i] + dp[j - price[i]]);
             }
         }
-
-        int answer = Integer.MAX_VALUE;
-        for (int i = 0; i <= maxCost; i++) {
-            if (dp[i] >= m) {
-                answer = i;
+        for(int i=0; i<=MAX_PRICE; i++) {
+            if(dp[i] >= m) {
+                System.out.print(i);
                 break;
             }
         }
-
-        System.out.println(answer);
     }
 }
