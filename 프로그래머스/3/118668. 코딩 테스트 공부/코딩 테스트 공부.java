@@ -8,6 +8,9 @@ class Solution {
         alp_rwd: 문제를 풀었을 때 증가하는 알고력
         cop_rwd: 문제를 풀었을 때 증가하는 코딩력
         cost: 문제를 푸는데 드는 시간
+        
+        시간 복잡도: O(NMK)
+        공간 복잡도: O(NM)
     */
     public int solution(int alp, int cop, int[][] problems) {
         int maxAlp = 0;		// 필요한 알고력
