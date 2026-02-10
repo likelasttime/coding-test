@@ -1,10 +1,14 @@
-import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.PriorityQueue;
-import java.util.Comparator;
 
+/*
+    n개의 지점으로 이루어짐
+    각 지점은 1 ~ n의 번호를 가진다
+    각 지점은 양방향 통행이 가능한 등산로로 연결되어 있다.
+    휴식 없이 이동해야 하는 시간 중 가장 긴 시간은 intensity
+    출입구는 처음과 끝에 한 번씩, 산봉우리는 한 번만 포함된다.
+    itensity를 최소로 하자.(여러 개라면 산봉우리의 번호가 가장 낮은 등산코스를 선택)
+*/
 class Solution {
     static List<List<Node>> nodeLst = new ArrayList();      // 인접 리스트
     
