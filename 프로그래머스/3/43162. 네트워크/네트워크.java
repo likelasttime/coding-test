@@ -1,5 +1,10 @@
 import java.util.*;
 
+/*
+    A와 B가 직접적으로 연결되어있고, B와 C가 직접적으로 연결되어 있다면
+        A와 C도 간접적으로 연결되어 있다.
+    네트워크의 개수를 구하기
+*/
 class Solution {
     static int[] parent;        // 각 컴퓨터의 부모
     
